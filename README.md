@@ -13,7 +13,7 @@ If you are not familiar with the general Machine Learning methodology, I invite 
 #### c. Regression Trees. 
 #### d. Model Selection
 #### e. Regularization
-#### f. 
+ 
 
 
 ### 2 Bayesian Classification
