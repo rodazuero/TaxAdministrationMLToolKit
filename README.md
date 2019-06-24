@@ -24,7 +24,7 @@ If you are not familiar with the general Machine Learning methodology, I invite 
    * Random forest 
    * Boosting, bootstrap, bagging
  
-4. [Model selection and regularization]
+4. [Model selection and regularization](https://github.com/rodazuero/TaxAdministrationMLToolKit/tree/master/ModelSelectionandRegularization)
    * Criteria for model and subset selection
    * Regularization: LASSO, Ridge, and others. 
    * Overfitting
