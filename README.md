@@ -1,7 +1,7 @@
 # Inter-American Development Bank 
 # Fiscal Management Division 
 
-![](https://ibb.co/Dzpw5QF) 
+![](Images/IDBLogo.png) 
 
 ## Data analytics Toolkit for Tax Administration
 
