@@ -1,0 +1,4 @@
+# Tree based models
+
+In this session we cover the basics of tree algorithms. We start by defining what is a decision tree algorithm and why it is useful to make predictions. Afterwards, we go through some methodologies that tend to improve the precision levels of basic tree algorithms such as prunning, bagging, random forest, and boosting. We use as an example a problem related to predicting the value of a house in a publicly available dataset. This problem is common in municipal tax administrations for the purpose of collecting property taxes. 
+The video of this session is available in [this link](https://idbg.sharepoint.com/portals/hub/_layouts/15/PointPublishing.aspx?app=video&p=p&chid=ae4c993c-8ae3-4938-9ec4-8365a37adf77&vid=89b94f6e-dd2b-43af-95d0-ef04223715c6)  
