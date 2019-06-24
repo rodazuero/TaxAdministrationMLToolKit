@@ -9,8 +9,8 @@ If you are not familiar with the general Machine Learning methodology, I invite 
 # I. Machine Learning
 
 1. [Introduction to machine learning](https://github.com/rodazuero/TaxAdministrationMLToolKit/tree/master/Introduction)
-  * What is Machine Learning?
-  * When is it useful?
+   * What is Machine Learning?
+   * When is it useful?
 
 2. [Introduction to supervised learning](https://github.com/rodazuero/TaxAdministrationMLToolKit/tree/master/IntroductionSupervised)
    * Regression and classification
