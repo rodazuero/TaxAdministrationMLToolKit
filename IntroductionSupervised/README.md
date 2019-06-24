@@ -1,0 +1,5 @@
+# Introduction to Supervised Learning
+
+This will be the first session of supervised machine learning. We will cover cover logistic regression for both, classification and regression problems, as well as linear regression. Some basic knowledge of linear algebra is required for the first part. 
+In the second part, we will go more into the details of classification and regression problems. This is fundamental for further topics such as neural networks and regularization methods. We will cover gradient descent, which is a basic tool for optimization widely used in machine learning algorithms. The third part will cover Bayesian classification and Maximum Likelihood estimation. 
+You can see the video of this session in [this link](https://idbg.sharepoint.com/portals/hub/_layouts/15/PointPublishing.aspx?app=video&p=p&chid=ae4c993c-8ae3-4938-9ec4-8365a37adf77&vid=3791091b-eab8-4a66-b1a0-a32d2f9afeea)  
