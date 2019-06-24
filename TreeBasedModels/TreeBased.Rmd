@@ -1,0 +1,716 @@
+---
+title: "Machine Learning for All: Tree based models"
+author: "Anastasiya Yarygina"
+date: "Friday, February 15, 2019"
+output:
+  beamer_presentation:
+    includes:
+      in_header: header_pagenrs.tex
+urlcolor: blue
+---
+
+
+## Decision Tree Algorithms in Machine Learning
+
+In this lecture we will cover the following topics:
+
+* Decision trees: Using tree-logic to make predictions
+    + Regression single-tree models
+    + Random Forest
+    + If we have time: Boosting
+
+* Examples: 
+    + \href{https://www.kaggle.com/c/boston-housing}{\color{blue}{Boston Housing, Kaggle}}
+    + \href{https://www.kaggle.com/camnugent/california-housing-prices}{\color{blue}{California Housing Prices, Kaggle}}
+* Extra practice: Classification tree models using \href{https://en.wikipedia.org/wiki/Iris_flower_data_set}{\color{blue}{Iris}} dataset
+
+```{r, echo=FALSE}
+# Clear workig space
+rm(list = ls())
+
+# SET working directory
+# setwd ("YOUR WORKING DIRECTORY")
+```
+
+
+## What is a Decision Tree?
+
+
+```{r echo=FALSE, out.width='80%'}
+knitr::include_graphics("decision_tree.png")
+```
+
+Tree-logic uses series of steps to come to a conclusion.
+Each decision is a **node**, and the final prediction is a **leaf node**.
+
+## Decision Trees in ML
+
+* **Decision Tree Algorithm** is a supervised learning algorithm that can be used for solving 
+    - **regression** and     
+        + continuous response variable 
+        + wage example from last week   
+    - **classification** problems     
+        + categorical or factor response variable
+        + spam example from last week  
+
+* Classically, the name of this algorithm is **Decision Tree**
+    - Some platforms like R use a modern term **CART** (Classification and Regression Trees)
+
+* Objective: obtain **predictions** 
+    - of the **reponse variable $Y$** (dependent variable or output) 
+    - from the **input variables $X_1$, $X_2$, ... $X_n$** (features, predictors).
+
+## Predictions using Decision Trees 
+
+* **Key Idea**: Decision Tree **splits** the data into 
+    + two or more **homogeneous data segments** 
+    + based on the **best splitter**, which is a variable taken from the inputs $X_1$, $X_2$, ... $X_n$. 
+
+* Every time we split the sample we make a decision. Each decision is a **decision node**, and the final prediction is a **leaf node**.  
+
+* Example: fit a tree that predicts for each property **log price** using as inputs **longitude** and **latitude**. 
+
+
+## Exmpale: California Housing dataset
+
+We can fit a tree that predicts for each property **log price** using as inputs **longitude** and **latitude**.   
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.height=8, fig.width=10}
+# Fit one tree model to California Housing data
+if (!require("tree")) install.packages("tree")
+library(tree)
+ca = read.csv("CAhousing.csv")
+tree.model <- tree(log(medianHouseValue) ~ longitude + latitude, data=ca)
+plot(tree.model,type= "uniform")
+text(tree.model, label=c("yval"), cex=1)
+```
+
+
+
+## Exmpale: California Housing dataset
+
+* The tree has 11 **decision nodes**, which are the nodes where the splitting of the data takes place.  
+    - Node 1: root node, split on latitude at 38.485
+* And there are 12 **leaf nodes**    
+    - Leaf node 12: value 11.32
+
+* The data space is partitioned in to 12 **homogeneous regions**. 
+* How do these **homogeneous regions** look like? 
+
+
+## Exmpale: California Housing dataset
+Overlay log price of properties on predicted partitions. Darker dots represent more expensive properties.
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.height=8, fig.width=10}
+# Look at data partitions overlayed on housing prices
+price.deciles <- quantile(ca$medianHouseValue, 0:10/10)
+cut.prices    <- cut(ca$medianHouseValue, price.deciles, include.lowest=TRUE)
+plot(ca$longitude, ca$latitude, col=grey(10:2/11)[cut.prices], pch=20, 
+     xlab="Longitude",ylab="Latitude")
+partition.tree(tree.model, ordvars=c("longitude","latitude"), add=TRUE)
+```
+
+## Exmpale: California Housing dataset
+The tree model divided the **predictor space** (longitude and latitude in this case) into 12 **distinct** and **non-overlapping** rectangular **regions** $R_1$, $R_2$, ...,$R_j$, ... $R_{12}$. 
+
+If there are more than two inputs, the data space is split in some kind of hyper-rectangles.
+
+For every observation that falls into a given region $R_j$, the model assigns its **predicted value**, which is the **mean of the response $Y$** (log price in this case) for all observations in region $R_j$. 
+
+The regions with the log average value 12.5 are LA and the Bay Area. 
+
+
+
+
+## Decision Tree Algorithm 
+
+To get homogeneous segments, the model makes **optimal splits**.
+
+Each **optimal split** is made:  
+
+* at **certain value of some predictor $X_i$**,  
+* so that the child set to the left of the split and the child set to the right of the split are **as homogeneous in response $Y$ as possible**. 
+
+In regression trees **homogeneity** is measured by the **Sum of Squared Errors** (SSE): 
+
+$sum(y-prediction_{left})^2 + sum(y-prediction_{right})^2$ 
+
+Each **optimal split minimizes the SSE** to the left and to the right of the split. 
+
+
+## Decision Tree Algorithm
+
+Decision trees are fit in a **top-down**, **greedy** approach, which is also known as a \href{https://en.wikipedia.org/wiki/Binary_splitting}{\color{blue}{recursive binary splitting}}. 
+
+* **Top-down**: it starts at the top of the tree
+* **Greedy**: at each step the best split is made at ***that*** particular step, we do not look ahead and pick the split that will lead to a better tree in some future step.
+
+**Each split improves the fit** of the tree (think of $R^2$ and adding new variables in a regression model).
+
+**The algoritm stops** when:  
+
+* improvement in the fit is below some predefined threshold (default 0.01) 
+* number of observations in leafs is below some predefined threshold (default 5)
+
+## Practice: *tree* package and Boston Housing dataset 
+
+Fit a single tree model  
+  - to predict **median value of properties** using  
+  - **low income status** as predictor.
+
+
+## Practice: *tree* package and Boston Housing dataset 
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Load Boston Housing data
+if (!require("MASS")) install.packages("MASS") # install MASS package if not available
+if (!require("tree")) install.packages("tree") # install tree package if not available
+
+library(tree) # load package to estimate the tree model
+library(MASS) # load package that contains the Boston Housing Data
+attach(Boston) # Make Boston variables directly accesible
+# str(Boston) # Have a quick look at the data
+```
+
+
+Fit a tree to predict median value of properties using low income status as predictor.
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.height=5, fig.width=10}
+# First, get a big tree using a small value of mindev
+temp = tree(medv~lstat, data=Boston, mindev=.001)
+# mindev is a minimum improvement in the model fit
+# smaller mindev -> bigger tree
+
+# plot the big tree
+plot(temp,type= "uniform") # uniform makes branches of the same size
+text(temp, label=c("yval"), cex=0.8)
+# if the tree is too small, make mindev smaller.
+
+# to see the size of the tree: 
+cat("The big tree size is: ",length(unique(temp$where)), "\n")
+
+```
+
+
+## Prunning
+
+
+Tree models are very flexible and **tend to overfit**.
+
+To avoid oferfitting trees are **prunned** by removing nodes and brunches from the bottom up.  
+
+At each step we remove the split that contributes least to improvement in the fit. 
+
+Pruning produces a set of **candidate trees** of different sizes.  
+
+What is the best tree size (what is the best number of nodes)?
+
+We use **Cross Validation** to choose the best tree size.
+
+The tree with the best size has the smallest SSE.    
+
+
+## Practice: *tree* package and Boston Housing dataset 
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.height=5, fig.width=8}
+# use Cross Validation to know how much should we prun the tree
+cvpst <- cv.tree(temp, K=10) # K is the number of folds
+# cvpst$size # the list of tree sizes
+# cvpst$dev  # the list of deviances for each tree size
+plot(cvpst)
+cat("CV and choose the size that minimizes SSE")
+```
+
+## Practice: *tree* package and Boston Housing dataset
+
+```{r, echo=FALSE,  message=FALSE, warning=FALSE, fig.height=5, fig.width=8}
+# we prune the tree down to 7 best paths 
+boston.tree=prune.tree(temp,best=7) 
+# Plot the prunned tree
+plot(boston.tree,type= "uniform" ) # uniform makes branches of the same size 
+text(boston.tree,col="blue",label=c("yval"),cex=.8)
+
+# what is the size of the prunned tree? 
+cat("the size of the prunned tree is", length(unique(boston.tree$where)),"\n")
+
+
+```
+
+
+## Practice: *tree* package and Boston Housing dataset
+Compare Tree Model fit and Linear Model fit 
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.height=5, fig.width=8}
+# plot tree and linear model fits
+boston.fit = predict(boston.tree) #get fitted values of the tree model
+plot(lstat,medv,cex=.5,pch=16) 
+oo=order(lstat) # order by lstat
+lines(lstat[oo],boston.fit[oo],col="red",lwd=3) # plot tree model fit
+abline(lm(medv~lstat, data=Boston), col="blue") # add linear fit
+legend("topright", legend=c("Tree Model fit", "Linear Model fit"),
+       col=c("red", "blue"), lty=1)
+```
+
+
+
+
+## Aggregating Trees    
+
+* Single tree algorithms are effective in making reasonable predictions
+
+* Singe tree models are **weak learners** 
+
+* How can we get a **strong learner**? Aggregate predictions from many weak learners
+
+* To improve predictions we can: 
+    - fit many tree models from the same data
+    - and average predictions across these models.
+
+  
+    
+
+## Aggregating Trees: Bagging    
+
+* This is exactly what **Bagging** (or \href{https://en.wikipedia.org/wiki/Bootstrap_aggregating}{\color{blue}{Bootstrap aggregation}}) procedures do. The steps are the following:  
+
+    - Sample (Bootstrap) $B$ subsets of the data
+    - Fit a tree to each subset to get $B$ fitted trees
+    - Average predictions across trees
+    
+\begin{figure}[p]
+```{r echo=FALSE, fig.align='center', out.width='80%'}
+knitr::include_graphics("bagging1.png")
+```
+
+\end{figure}
+
+ 
+## Aggregating Trees: Random Forest
+
+**Random Forest**  is a special case of Bagging. It provides an improvement over bagged trees by way of a small tweak: 
+
+* Random Forest builds $B$ trees on subsets of the data. 
+* But, for each split it randomly choose a **sample of $m$ predictors** of all available $p$ predictors (default $m=\sqrt{p}$).   
+
+Random Forest tuning parameters are $B$ and $m$. 
+
+\begin{figure}[p]
+```{r echo=FALSE, fig.align='center', out.width='80%'}
+knitr::include_graphics("rf1.png")
+```
+
+\end{figure}
+
+
+
+## Aggregating Trees: Why is Random Forest better than Bagging?
+
+
+
+
+```{r echo=FALSE, out.width='80%'}
+knitr::include_graphics("decision_tree.png")
+```
+  
+  Bagging: **all $p$** predictors --> **similar trees**
+
+Random Forest: **selection of $m<P$** predictors --> **different trees**
+
+
+
+
+## Practice: Regression Trees using California Housing data
+
+Objectives:  
+
+* Fit Single tree model and Random Forest model
+* Fit linear model
+* Compare predictive capacity using Out of Sample (OOS) Mean Root Squared Error (MRSE), which is a sqrt(SSE).
+
+We fit models on **training partition** and we evaluate their predictive capacity on **testing partition**.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.height=8, fig.width=10}
+# load California Housing Prices, partition in train and test
+ca = read.csv("CAhousing.csv")
+# str(ca)
+
+# replace median house value by log median house values
+ca$logMedVal=log(ca$medianHouseValue)
+ca$medianHouseValue <- NULL
+
+# make variables accesible my names
+attach(ca)
+
+# split data in training and testing partitions 
+set.seed(14) 
+
+n=nrow(ca)
+n1=floor(n*0.6)
+n2=n-n1
+ii = sample(1:n,n)
+catrain=ca[ii[1:n1],]
+catest = ca[ii[n1+1:n2],]
+
+# check the size of training partition
+# dim(catrain)[1]/(dim (catrain)[1] + dim (catest)[1])
+
+```
+
+
+
+## Fit Single Tree model using *rpart* package  
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.height=3, fig.width=6}
+# 1. Single Tree model
+if (!require("rpart")) install.packages("rpart")  #install if necessary
+library(rpart) # load package to fit a tree model
+
+# fit a big tree using rpart.control
+# tunning parameters: 
+# minsplit: minmum number of observations in the node for split to take place
+# cp: complexity parameter, any split that does not improve the fit 
+# (in fact, does nod decrease the overall lack of fit by a factor of cp)
+# is not attempted.
+
+big.tree = rpart(logMedVal~., method="anova",data=catrain, 
+                 control=rpart.control(minsplit=5,cp=.0005))
+nbig = length(unique(big.tree$where))
+cat("size of big tree: ",nbig,"\n")
+
+# predict on testing partition 
+rparttestpred = predict(big.tree,newdata=catest)
+
+# compute Root Mean Squared Error out of sample 
+rmse_rpart = sqrt(mean((catest$logMedVal-rparttestpred)^2))
+cat("RMSE Single Tree Model: ",rmse_rpart,"\n")
+```
+
+
+
+
+
+
+## Fit Random Forest model using *randomForest* package 
+
+Ideally, fit many models with different tuning parameters. Choose the one with the best OOS RMSE. 
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.height=4, fig.width=8}
+# 2. Random Forest model
+if (!require("randomForest")) install.packages("randomForest") # install if necessary
+library(randomForest) # load package to fit RF model
+
+# tunning parameters: 
+# mtry = number of variables in each node 
+# ntree = number of trees or number of bootstrap samples
+
+# fit 3 different RF models
+
+# rffit1 = randomForest(logMedVal~.,data=catrain,mtry=3,ntree=500)
+# rffit2 = randomForest(logMedVal~.,data=catrain,mtry=6,ntree=250)
+rffit3 = randomForest(logMedVal~.,data=catrain,mtry=3,ntree=50)
+
+# predict on testing partition 
+# rftestpred1 = predict(rffit1,newdata=catest)
+# rftestpred2 = predict(rffit2,newdata=catest)
+rftestpred3 = predict(rffit3,newdata=catest)
+
+# OOS error 1
+# rmse_rf1 = sqrt(mean((catest$logMedVal-rftestpred1)^2))
+# cat("rmse on test for RF m=3 ntree=500: ",rmse_rf1,"\n")
+
+# OOS error 2
+# rmse_rf2 = sqrt(mean((catest$logMedVal-rftestpred2)^2))
+# cat("rmse on test for RF m=6 ntree=250: ",rmse_rf2,"\n")
+
+# OOS error 2
+rmse_rf3 = sqrt(mean((catest$logMedVal-rftestpred3)^2))
+cat("RMSE on test for RF m=3 ntree=50: ",rmse_rf3,"\n")
+
+# Variable importance:  
+# Variables with high importance are better predictors
+cat("Variable Importance RF")
+varImpPlot(rffit3)
+```
+
+
+
+
+
+## Fit Linear model and compare OOS RMSE  
+
+* Linear model OOS predictive capacity: 
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# 4. Linear fit
+lmfit <- lm(logMedVal ~ ., data=catrain)
+
+# predict on testing partition
+lmtestpred=predict(lmfit,newdata=catest)
+
+# OOS error
+rmse_lm = sqrt(mean((catest$logMedVal-lmtestpred)^2))
+cat("RMSE on test for linear model: ",rmse_lm,"\n")
+```
+
+* Now, let's compare OOS predictive capacity of all models
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# compare OOS predictive capacity of different models 
+cbind(rmse_rpart,rmse_rf3, rmse_lm)
+```
+
+
+* Which model does the best job? 
+* Recall: we want models to have **low** RMSE
+
+
+## Takeawyas  
+
+* Decision Trees are simple machine learning algorithms and they are easy to visualize.
+* Trees are useful to solve regression and classification problems.
+* However, single tree models tend to overfit.
+* **Ensembling methods** such as Random Forest are good for improving predictive capacity of trees. They work growing many trees and combining predictions of the resulting ensemble of trees.
+* Random Forest is among the sate-of-the art methods for supervised learning. However, it is computationally intensive and its results are difficult to interpret.
+
+
+
+## More on Ensembling methods: Boosting
+
+**Boosting** builds many decision trees, but unlike Bagging or Random Forest, Boosting trees are grown **sequentially**. The steps are the following:  
+
+* Fit the model **tree#1** on the original data and save the residuals
+* Fit the model **tree#2** on the residuals
+* Update the initial model: **tree#3 = tree#1 + tree#2**
+* Update the residuals
+* Fit a new model **tree#4** on the residuals
+* ...
+* Repeat the process for a specified number of iterations
+
+Updated trees are **shrunk** by the **shrinkage parameter** $\lambda$ which controls the rate at which algorithm learns (default = 0.001 to 0.01).
+
+Other tuning parameters: $d$ the number of splits in each tree and $B$ the number of trees to grow. 
+
+
+
+## Practice: Fit Boosting model using *gbm*^[GBM: Gradient Boost Machine] package
+
+Ideally, fit many models with different tuning parameters. Choose the one with the best OOS RMSE. 
+
+```{r, echo=FALSE,  message=FALSE, warning=FALSE, fig.height=4, fig.width=8}
+# 3. Boosting model
+if (!require("gbm")) install.packages("gbm") # install if necessary 
+library ("gbm") # GBM: Gradient Boost Machine
+
+# tunning parameters:
+# B = number of iterations (number of trees in the sum)
+# depth = size of each tree
+# shrinkage = shrinkage factor
+
+# boostfit1 = gbm(logMedVal~.,data=catrain,distribution="gaussian",
+#               interaction.depth=4,n.trees=5000,shrinkage=.2)
+
+# boostfit2 = gbm(logMedVal~.,data=catrain,distribution="gaussian",
+#                interaction.depth=10,n.trees=1000,shrinkage=.02)
+
+boostfit3 = gbm(logMedVal~.,data=catrain,distribution="gaussian",
+                interaction.depth=4,n.trees=1000,shrinkage=.2)
+
+# predict on testint partition
+# boosttestpred1=predict(boostfit1,newdata=catest,n.trees=5000)
+# boosttestpred2=predict(boostfit2,newdata=catest,n.trees=1000)
+boosttestpred3=predict(boostfit3,newdata=catest,n.trees=1000)
+
+# OOS error 1
+# rmse_gbm1 = sqrt(mean((catest$logMedVal-boosttestpred1)^2))
+# cat("rmse on test for boosting depth=4, n.trees=5000, shrinkage=.2: ",rmse_gbm1,"\n")
+
+# OOS error 2
+# rmse_gbm2 = sqrt(mean((catest$logMedVal-boosttestpred2)^2))
+# cat("rmse on test for boosting depth=10, n.trees=1000, shrinkage=.02: ",rmse_gbm2,"\n")
+
+# OOS error 2
+rmse_gbm3 = sqrt(mean((catest$logMedVal-boosttestpred3)^2))
+cat("RMSE on test for Boosting 4; 1000; 2: ",rmse_gbm3,"\n")
+
+# Variable importance:  
+# Variables with high importance are better predictors
+cat("Variable Importance Boosting")
+summary(boostfit3, plotit = FALSE)
+
+```
+
+
+
+## Compare OOS RMSE
+
+* Let's compare predictive capacity of Single tree model, Random Forest, Boosting and Linear model: 
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# compare 4 models: Single tree model, random forest, boosing, 
+# linear model
+cbind(rmse_rpart,rmse_rf3, rmse_gbm3, rmse_lm)
+```
+
+* Which model does the best job? 
+* Recall: we want models to have **low** RMSE
+
+
+## Extra: Classification problema using *iris* dataset 
+What happens if our problem is a **classification problem**? 
+
+***iris*** dataset: sepal and petal length and width, 150 plants, 3 species - Setosa, Versicolor, Virginica.
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.height=5, fig.width=8}
+# load the iris dataset 
+data(iris)
+# look at the dataset
+# str(iris)
+# plot the data
+plot(iris$Petal.Width,iris$Sepal.Width,pch=19,col=as.numeric(iris$Species))
+legend(2,4.5,legend=unique(iris$Species),col=unique(as.numeric(iris$Species)),pch=19)
+```
+
+
+## Exmpale: *iris* dataset 
+Fit a model that predicts species using as inputs sepal and petal width.  
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.height=5, fig.width=8}
+# build a classification tree model
+if (!require("tree")) install.packages("tree")  #install if necessary
+library(tree)
+tree <- tree(Species ~ Sepal.Width + Petal.Width, data = iris)
+plot(tree,type= "uniform")
+text(tree, label=c("yval"), cex=1)
+```
+  
+  * Prediction is the **most common category**
+
+## Exmpale: *iris* dataset 
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.height=5, fig.width=8}
+# Look at partitions overlayed on species data
+plot(iris$Petal.Width,iris$Sepal.Width,pch=19,col=as.numeric(iris$Species))
+partition.tree(tree,label="Species",add=TRUE)
+legend(1.75,4.5,legend=unique(iris$Species),col=unique(as.numeric(iris$Species)),pch=19)
+```
+  
+  Partitions are defined by the classification tree. The first node classifies plants with petal width < 0.8 as setosa. Next, all plants with petal width > 1.75 are virginica. 
+
+
+
+
+## Extra practice: Classification Trees using *iris* dataset
+
+Objectives:  
+
+* Fit Single Tree, Random Forest, Boosting models
+* Fit multinomial model
+* Compare predictive capacity using OOS **Accuracy**
+
+Fit models on **training partition** and evaluate their predictive capacity on **testing partition**.
+
+
+## Fit Single Tree model
+
+* Classification table Single Tree model
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Load iris data, fit one tree model
+data(iris)
+set.seed(14) 
+n=nrow(iris)
+n1=floor(n/2)
+n2=n-n1
+ii = sample(1:n,n)
+iristrain=iris[ii[1:n1],]
+iristest = iris[ii[n1+1:n2],]
+
+# check size of training and testing partitions
+# dim (iristrain)
+# dim (iristest)
+
+# One tree model using rpart package
+rpartfit <- rpart(Species ~ ., data=iristrain)
+# OOS prediction
+rpartfitpred <- predict(rpartfit, newdata=iristest, type="class")
+# Classification table
+table(iristest$Species, rpartfitpred)
+# OOS accuracy
+accuracy <- table(rpartfitpred, iristest$Species)
+rpart_acc <- sum(diag(accuracy))/sum(accuracy)
+```
+
+
+## Fit RF model
+
+* Classification table RF
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# RF
+rfrit = randomForest(Species~.,data=iristrain, importance=TRUE,ntree=100)
+# OOS Prediction
+rfritpred = predict(rfrit,newdata=iristest)
+# Classification table
+table(iristest$Species, rfritpred)
+# OOS accuracy
+accuracy <- table(rfritpred, iristest$Species)
+rf_acc <- sum(diag(accuracy))/sum(accuracy)
+```
+
+## Fit Boosting model
+
+* Classification table Boosting model
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Boosting
+gbmfit = gbm(Species~.,data=iristrain, distribution ='multinomial',
+             interaction.depth=10,n.trees=1000,shrinkage=.02)
+# OOS prediction
+gbmfitpred = predict(gbmfit,newdata=iristest,n.trees=1000, type='response')
+# pick the response with the highest probability 
+# from the resulting matrix of predicted probabilities
+gbmfitpredcat <- apply(gbmfitpred, 1, which.max)
+# Classification table
+table(iristest$Species, gbmfitpredcat)
+# OOS accuracy
+accuracy <- table(gbmfitpredcat, iristest$Species)
+gbm_acc <- sum(diag(accuracy))/sum(accuracy)
+```
+
+
+## Fit Multinomial model
+
+* Classification table Multinomial model
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Multinomial model
+if (!require("nnet")) install.packages("nnet") # install if necessary
+library("nnet") # load the package
+mnfit <- multinom(Species ~ ., data=iristrain, trace=FALSE)
+# OOS prediction
+mnfitpred<- predict(mnfit, newdata=iristest)
+# Classification table
+table(iristest$Species, mnfitpred)
+# OOS accuracy
+accuracy <- table(mnfitpred, iristest$Species)
+mn_acc <- sum(diag(accuracy))/sum(accuracy)
+```
+
+
+
+
+## Compare OOS Accuracy
+
+
+* Now, compare OOS predictive capacity of all models
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Compare performance of all models
+cbind(rpart_acc,rf_acc,gbm_acc,mn_acc)
+```
+
+* Which model does the best job? 
+* Recall: we want models to have **high** accuracy
+
+
+
+
+
