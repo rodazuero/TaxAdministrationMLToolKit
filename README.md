@@ -1,4 +1,8 @@
-# Fiscal Management Division - Data analytics Toolkit for Tax Administration
+# Inter-American Development Bank Fiscal Management Division 
+![](https://ibb.co/Dzpw5QF) 
+Data analytics Toolkit for Tax Administration
+
+
 
 This toolkit provides some examples of machine learning projects to be used by tax administrations for different purposes. The examples include supervised learning methods for classification and regression as well as unsupervised methods for anomaly detection. The code is in R and Python but can be easily adapted to other programming languages. A fake generated dataset is used for illustrative purposes in each of the algorithms.
 
