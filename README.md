@@ -4,9 +4,9 @@ This toolkit provides some examples of machine learning projects to be used by t
 
 If you are not familiar with the general Machine Learning methodology, I invite you to take a look at the course  ["Machine Learning For All"](https://idbg.sharepoint.com/sites/EVP/MLPA/Pages/Learning.aspx) taught by Rodrigo Azuero, Selina Carter. , Cesar Montiel, and Ana Yagygina at the Inter-American Development Bank. In the website you will find videos, presentations, and code that will help you better understand the Machine Learning methodologies. 
 
-## Topics
+## A. Machine Learning 
 
-### 1 Supervised Learning
+### A.1 Supervised Learning
 
 #### a. Bayesian Classification
 #### b. Linear and Logistic Regression
@@ -16,7 +16,12 @@ If you are not familiar with the general Machine Learning methodology, I invite 
  
 
 
-### 2 Bayesian Classification
+### A.2 Unsupervised Learning
 
 #### a. K-means clustering
 #### b. Principal component analysis
+
+
+## B. Impact Evaluation 
+
+### a. 
