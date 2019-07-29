@@ -3,11 +3,11 @@
 
 ![](Images/IDBLogo.png) 
 
-## Data analytics Toolkit for Tax Administration
+## Data analytics Toolkit for Fiscal Management
 
 
 
-This toolkit provides some examples of machine learning projects to be used by tax administrations for different purposes. The examples include supervised learning methods for classification and regression as well as unsupervised methods for anomaly detection. The code is in R and Python but can be easily adapted to other programming languages. A fake generated dataset is used for illustrative purposes in each of the algorithms.
+This toolkit provides some examples of machine learning projects for fiscal management. The examples include supervised learning methods for classification and regression as well as unsupervised methods for anomaly detection. The code is in R and Python but can be easily adapted to other programming languages. A fake generated dataset is used for illustrative purposes in each of the algorithms.
 
 The material presented in this repository includes presentations, videos, code, and theoretical documentation. All the material in this repository was prepared by Rodrigo Azuero, Cesar Montiel, and Ana Yarygina. 
 
